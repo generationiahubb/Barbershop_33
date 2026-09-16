@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel do barbeiro | Barbershop 33</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="brand"><img src="logo.png" alt="Barbershop 33" class="logo-img">BARBERSHOP 33</div>
+
+<!-- Tela de login -->
+<div class="card" id="loginCard">
+  <h1 class="page-title">Painel do barbeiro</h1>
+  <div class="field">
+    <label for="email">E-mail</label>
+    <input type="email" id="email" autocomplete="username">
+  </div>
+  <div class="field">
+    <label for="senha">Senha</label>
+    <input type="password" id="senha" autocomplete="current-password">
+  </div>
+  <p class="error-msg" id="loginError"></p>
+  <button class="btn btn-primary" id="loginBtn">Entrar</button>
+</div>
+
+<!-- Painel de controle (só aparece logado) -->
+<div class="card" id="panelCard" style="display:none;">
+  <h1 class="page-title">Atualizar status</h1>
+
+  <div class="toggle-row">
+    <button class="btn btn-toggle-aberto" id="btnAberto">Aberto</button>
+    <button class="btn btn-toggle-fechado" id="btnFechado">Fechado</button>
+  </div>
+
+  <div class="field">
+    <label for="mensagem">Mensagem para os clientes (opcional)</label>
+    <textarea id="mensagem" maxlength="120" placeholder="Ex: Fechado - almoço até 14h / Fechado mais cedo hoje, volta amanhã 9h"></textarea>
+  </div>
+
+  <button class="btn btn-primary" id="salvarBtn">Salvar atualização</button>
+  <p class="save-msg" id="saveMsg"></p>
+  <p class="status-updated" id="lastSaved" style="text-align:center;margin-top:8px;"></p>
+
+  <button class="btn btn-logout" id="logoutBtn" style="margin-top:20px;">Sair</button>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+  const auth = firebase.auth();
+  const loginCard = document.getElementById("loginCard");
+  const panelCard = document.getElementById("panelCard");
+  const loginError = document.getElementById("loginError");
+
+  document.getElementById("loginBtn").addEventListener("click", () => {
+    const email = document.getElementById("email").value.trim();
+    const senha = document.getElementById("senha").value;
+    loginError.textContent = "";
+    auth.signInWithEmailAndPassword(email, senha).catch((err) => {
+      loginError.textContent = "E-mail ou senha incorretos.";
+      console.error(err);
+    });
+  });
+
+  document.getElementById("logoutBtn").addEventListener("click", () => {
+    auth.signOut();
+  });
+
+  auth.onAuthStateChanged((user) => {
+    loginCard.style.display = user ? "none" : "block";
+    panelCard.style.display = user ? "block" : "none";
+    if (user) loadCurrentStatus();
+  });
+
+  let abertoAtual = true;
+  const btnAberto = document.getElementById("btnAberto");
+  const btnFechado = document.getElementById("btnFechado");
+  const mensagemInput = document.getElementById("mensagem");
+  const saveMsg = document.getElementById("saveMsg");
+  const lastSaved = document.getElementById("lastSaved");
+
+  function setToggle(aberto) {
+    abertoAtual = aberto;
+    btnAberto.classList.toggle("active", aberto);
+    btnFechado.classList.toggle("active", !aberto);
+  }
+
+  btnAberto.addEventListener("click", () => setToggle(true));
+  btnFechado.addEventListener("click", () => setToggle(false));
+
+  function loadCurrentStatus() {
+    STATUS_DOC.get().then((doc) => {
+      if (doc.exists) {
+        const data = doc.data();
+        setToggle(!!data.aberto);
+        mensagemInput.value = data.mensagem || "";
+        if (data.atualizadoEm) {
+          lastSaved.textContent = "Última atualização: " + data.atualizadoEm.toDate().toLocaleString("pt-BR");
+        }
+      } else {
+        setToggle(true);
+      }
+    });
+  }
+
+  document.getElementById("salvarBtn").addEventListener("click", () => {
+    saveMsg.textContent = "Salvando...";
+    STATUS_DOC.set({
+      aberto: abertoAtual,
+      mensagem: mensagemInput.value.trim(),
+      atualizadoEm: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true }).then(() => {
+      saveMsg.textContent = "Atualizado com sucesso!";
+      lastSaved.textContent = "Última atualização: agora mesmo";
+      setTimeout(() => { saveMsg.textContent = ""; }, 3000);
+    }).catch((err) => {
+      saveMsg.textContent = "Erro ao salvar. Tente novamente.";
+      console.error(err);
+    });
+  });
+</script>
+
+</body>
+</html>
