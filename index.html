@@ -20,6 +20,57 @@
   <a class="whatsapp-btn" id="whatsappBtn" href="https://wa.me/5514997135800" target="_blank">Falar no WhatsApp</a>
 </div>
 
+<div class="section" id="servicos">
+  <h2 class="section-title">Serviços</h2>
+  <p class="peak-notice">⚡ Sexta e sábado costumam lotar — agenda cedo!</p>
+  <div class="services-grid">
+    <div class="service-card">
+      <p class="service-name">Cabelo</p>
+      <p class="service-price">R$ 30,00</p>
+      <a class="btn-agendar" data-service="Cabelo" data-price="R$ 30,00" href="#">Agendar</a>
+    </div>
+    <div class="service-card">
+      <p class="service-name">Barba</p>
+      <p class="service-price">R$ 20,00</p>
+      <a class="btn-agendar" data-service="Barba" data-price="R$ 20,00" href="#">Agendar</a>
+    </div>
+    <div class="service-card">
+      <p class="service-name">Combo Cabelo + Barba</p>
+      <p class="service-price">R$ 40,00</p>
+      <a class="btn-agendar" data-service="Combo Cabelo + Barba" data-price="R$ 40,00" href="#">Agendar</a>
+    </div>
+    <div class="service-card">
+      <p class="service-name">Sobrancelha</p>
+      <p class="service-price">R$ 20,00</p>
+      <a class="btn-agendar" data-service="Sobrancelha" data-price="R$ 20,00" href="#">Agendar</a>
+    </div>
+  </div>
+</div>
+
+<div class="section" id="galeria">
+  <h2 class="section-title">Galeria</h2>
+  <div class="gallery-grid">
+    <img class="gallery-img" src="https://placehold.co/400x400/17171a/c9a24b?text=Foto+1" alt="Trabalho 1">
+    <img class="gallery-img" src="https://placehold.co/400x400/17171a/c9a24b?text=Foto+2" alt="Trabalho 2">
+    <img class="gallery-img" src="https://placehold.co/400x400/17171a/c9a24b?text=Foto+3" alt="Trabalho 3">
+    <img class="gallery-img" src="https://placehold.co/400x400/17171a/c9a24b?text=Foto+4" alt="Trabalho 4">
+    <img class="gallery-img" src="https://placehold.co/400x400/17171a/c9a24b?text=Foto+5" alt="Trabalho 5">
+    <img class="gallery-img" src="https://placehold.co/400x400/17171a/c9a24b?text=Foto+6" alt="Trabalho 6">
+  </div>
+</div>
+
+<div class="section card" id="local">
+  <h2 class="section-title">Horário e Localização</h2>
+  <p class="info-line">🕒 Segunda a Sábado <span class="muted">(consulte disponibilidade)</span></p>
+  <p class="info-line">📍 R. Ângelo Maitan - Jardim Cambuí, Botucatu - SP, 18608-661</p>
+  <a class="btn-secondary" href="https://www.google.com/maps/search/?api=1&query=R.+%C3%82ngelo+Maitan+-+Jardim+Cambu%C3%AD%2C+Botucatu+-+SP%2C+18608-661" target="_blank">Ver no mapa</a>
+</div>
+
+<div class="lightbox" id="lightbox">
+  <span class="lightbox-close" id="lightboxClose">&times;</span>
+  <img id="lightboxImg" src="" alt="Foto ampliada">
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 <script src="firebase-config.js"></script>
@@ -71,6 +122,37 @@
   });
 
   setInterval(tickUpdated, 30000);
+
+  // Agendamento via WhatsApp
+  const WHATSAPP_NUMBER = "5514997135800";
+  document.querySelectorAll(".btn-agendar").forEach((btn) => {
+    const servico = btn.dataset.service;
+    const preco = btn.dataset.price;
+    const texto = `Olá! Quero agendar ${servico} (${preco}). Meu nome é ___ e prefiro [dia] às [hora].`;
+    btn.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(texto)}`;
+    btn.target = "_blank";
+  });
+
+  // Galeria com lightbox
+  const lightbox = document.getElementById("lightbox");
+  const lightboxImg = document.getElementById("lightboxImg");
+
+  document.querySelectorAll(".gallery-img").forEach((img) => {
+    img.addEventListener("click", () => {
+      lightboxImg.src = img.src;
+      lightbox.classList.add("open");
+    });
+  });
+
+  function closeLightbox() {
+    lightbox.classList.remove("open");
+    lightboxImg.src = "";
+  }
+
+  document.getElementById("lightboxClose").addEventListener("click", closeLightbox);
+  lightbox.addEventListener("click", (e) => {
+    if (e.target === lightbox) closeLightbox();
+  });
 </script>
 
 </body>
